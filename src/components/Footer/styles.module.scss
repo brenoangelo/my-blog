@@ -1,0 +1,22 @@
+.footer {
+  padding: 3rem 0;
+}
+
+.footerElements {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.socialMedias {
+  display: flex;
+  gap: 2rem;
+
+  a {
+    padding: 0.25rem;
+    transition: color 0.3s;
+    &:hover {
+      color: var(--purple-300);
+    }
+  }
+}
