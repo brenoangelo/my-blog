@@ -204,7 +204,7 @@ export default function Home() {
 
           <div className={styles.newsletterForm}>
             <input type="email" placeholder='Seu melhor e-mail'/>
-            <Button 
+            <Button
               text="Enviar"
               isFilled
             />
