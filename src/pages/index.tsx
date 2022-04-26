@@ -5,6 +5,18 @@ import { Button } from '../components/Button';
 import { IoArrowForwardSharp } from 'react-icons/io5';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import Link from 'next/link';
+import { GetStaticProps } from 'next';
+import { createClient } from '../services/prismic';
+
+interface IHome {
+  postSpotlight: {
+    uid: string;
+    first_publication_date: string;
+    data: {
+
+    }[]
+  }
+}
 
 export default function Home() {
   return (
@@ -203,14 +215,38 @@ export default function Home() {
           </div>
 
           <div className={styles.newsletterForm}>
-            <input type="email" placeholder='Seu melhor e-mail'/>
-            <Button
-              text="Enviar"
-              isFilled
-            />
+            <input type="email" placeholder="Seu melhor e-mail" />
+            <Button text="Enviar" isFilled />
           </div>
         </div>
       </section>
     </main>
   );
 }
+
+export const getStaticProps: GetStaticProps = async () => {
+  const prismic = createClient({});
+  const postResponse = await prismic.getByType('post', {
+    orderings: {
+      field: 'document.first_publication_date',
+      direction: 'desc',
+    },
+    pageSize: 4,
+  });
+
+  const posts = postResponse.results.slice(1);
+  const postSpotlight = {
+    slug: postResponse.results[0].uid,
+    title: RichText.asHtml(postResponse.results[0].data.title)
+  };
+
+  console.log(JSON.stringify(postSpotlight, null, 2))
+
+  return {
+    props: {
+      postSpotlight: postSpotlight,
+      posts: posts,
+      nextPage: postResponse.next_page,
+    },
+  };
+};
