@@ -8,17 +8,33 @@ import Link from 'next/link';
 import { GetStaticProps } from 'next';
 import { createClient } from '../services/prismic';
 
-interface IHome {
-  postSpotlight: {
-    uid: string;
-    first_publication_date: string;
-    data: {
+import { RichText } from 'prismic-dom';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 
-    }[]
-  }
+interface IPost {
+  uid: string;
+  first_publication_date: string;
+  data: {
+    title: {
+      text: string;
+    }[];
+    subtitle: string;
+    content: {
+      heading: string;
+      body: {
+        text: string;
+      }[];
+    }[];
+  };
+}
+interface IHomeProps {
+  postSpotlight: IPost;
+  posts: IPost[];
+  nextPage: string;
 }
 
-export default function Home() {
+export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
   return (
     <main className={styles.main}>
       <section className={styles.headerSection}>
@@ -54,20 +70,25 @@ export default function Home() {
             <div className={styles.articleText}>
               <Link href="/">
                 <a>
-                  <h2>Como utilizar hooks</h2>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: RichText.asHtml(postSpotlight.data.title),
+                    }}
+                  />
                 </a>
               </Link>
-              <p>
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-                Reiciendis aliquid accusantium repudiandae saepe, quaerat fugiat
-                ducimus dignissimos quibusdam quia nesciunt eos tenetur repellat
-                labore in similique soluta facere modi harum. (...)
-              </p>
+              <p>{postSpotlight.data.subtitle}</p>
               <div className={commonStyles.postInfo}>
-                <span>
+                <time>
                   <FiCalendar size={20} />
-                  15 Mar 2021
-                </span>
+                  {format(
+                    new Date(postSpotlight?.first_publication_date),
+                    'PP',
+                    {
+                      locale: ptBR,
+                    },
+                  )}
+                </time>
                 <span>
                   <FiUser size={20} />
                   Breno Angelo
@@ -234,13 +255,21 @@ export const getStaticProps: GetStaticProps = async () => {
     pageSize: 4,
   });
 
-  const posts = postResponse.results.slice(1);
   const postSpotlight = {
     slug: postResponse.results[0].uid,
-    title: RichText.asHtml(postResponse.results[0].data.title)
+    first_publication_date: postResponse.results[0].first_publication_date,
+    data: postResponse.results[0].data,
   };
 
-  console.log(JSON.stringify(postSpotlight, null, 2))
+  const posts = postResponse.results.slice(1).map((post) => {
+    return {
+      uid: post.uid,
+      first_publication_data: post.first_publication_date,
+      data: post.data,
+    };
+  });
+
+  console.log(postSpotlight)
 
   return {
     props: {
