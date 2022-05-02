@@ -13,13 +13,18 @@ import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
 interface IPost {
-  uid: string;
+  slug: string;
   first_publication_date: string;
   data: {
     title: {
       text: string;
     }[];
     subtitle: string;
+    author: string;
+    banner: {
+      alt: string | null;
+      url: string | null;
+    };
     content: {
       heading: string;
       body: {
@@ -68,7 +73,7 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
         <div className={commonStyles.container}>
           <article className={styles.articleHero}>
             <div className={styles.articleText}>
-              <Link href="/">
+              <Link href={`/post/${postSpotlight.slug}`}>
                 <a>
                   <div
                     dangerouslySetInnerHTML={{
@@ -91,7 +96,7 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
                 </time>
                 <span>
                   <FiUser size={20} />
-                  Breno Angelo
+                  {postSpotlight.data.author}
                 </span>
                 <span>
                   <FiClock size={20} />4 min
@@ -104,7 +109,12 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
               />
             </div>
             <div className={styles.articleImg}>
-              <img src="/images/Banner.png" alt="teste" />
+              <img
+                src={postSpotlight.data.banner.url}
+                alt={
+                  postSpotlight.data.banner.url ?? postSpotlight.data.subtitle
+                }
+              />
             </div>
           </article>
         </div>
@@ -112,114 +122,47 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
 
       <section className={styles.postsListSection}>
         <div className={commonStyles.container}>
-          <article className={styles.articleSimple}>
-            <div className={styles.articleImg}>
-              <Link href="/">
-                <a>
-                  <img src="/images/Banner.png" alt="teste" />
-                </a>
-              </Link>
-            </div>
-            <div className={styles.articleText}>
-              <Link href="/">
-                <a>
-                  <h2>Lorem ipsum</h2>
-                </a>
-              </Link>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Asperiores voluptatum velit enim quisquam eius explicabo veniam
-                error deserunt, laboriosam accusantium eum dolorem doloribus
-                inventore fugiat saepe autem omnis, quod atque.
-              </p>
-              <div className={commonStyles.postInfo}>
-                <span>
-                  <FiCalendar size={20} />
-                  15 Mar 2021
-                </span>
-                <span>
-                  <FiUser size={20} />
-                  Breno Angelo
-                </span>
-                <span>
-                  <FiClock size={20} />4 min
-                </span>
+          {posts.map((post) => (
+            <article className={styles.articleSimple}>
+              <div className={styles.articleImg}>
+                <Link href="/">
+                  <a>
+                    <img
+                      src={post.data.banner.url}
+                      alt={post.data.banner.alt ?? post.data.subtitle}
+                    />
+                  </a>
+                </Link>
               </div>
-            </div>
-          </article>
-
-          <article className={styles.articleSimple}>
-            <div className={styles.articleImg}>
-              <Link href="/">
-                <a>
-                  <img src="/images/Banner.png" alt="teste" />
-                </a>
-              </Link>
-            </div>
-            <div className={styles.articleText}>
-              <Link href="/">
-                <a>
-                  <h2>Lorem ipsum</h2>
-                </a>
-              </Link>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Asperiores voluptatum velit enim quisquam eius explicabo veniam
-                error deserunt, laboriosam accusantium eum dolorem doloribus
-                inventore fugiat saepe autem omnis, quod atque.
-              </p>
-              <div className={commonStyles.postInfo}>
-                <span>
-                  <FiCalendar size={20} />
-                  15 Mar 2021
-                </span>
-                <span>
-                  <FiUser size={20} />
-                  Breno Angelo
-                </span>
-                <span>
-                  <FiClock size={20} />4 min
-                </span>
+              <div className={styles.articleText}>
+                <Link href={`/post/${post.slug}`}>
+                  <a>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: RichText.asHtml(post.data.title),
+                      }}
+                    />
+                  </a>
+                </Link>
+                <p>{post.data.subtitle}</p>
+                <div className={commonStyles.postInfo}>
+                  <span>
+                    <FiCalendar size={20} />
+                    {/* {format(new Date(post?.first_publication_date), 'PP', {
+                      locale: ptBR,
+                    })} */}
+                  </span>
+                  <span>
+                    <FiUser size={20} />
+                    {post.data.author}
+                  </span>
+                  <span>
+                    <FiClock size={20} />4 min
+                  </span>
+                </div>
               </div>
-            </div>
-          </article>
-
-          <article className={styles.articleSimple}>
-            <div className={styles.articleImg}>
-              <Link href="/">
-                <a>
-                  <img src="/images/Banner.png" alt="teste" />
-                </a>
-              </Link>
-            </div>
-            <div className={styles.articleText}>
-              <Link href="/">
-                <a>
-                  <h2>Lorem ipsum</h2>
-                </a>
-              </Link>
-
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Asperiores voluptatum velit enim quisquam eius explicabo veniam
-                error deserunt, laboriosam accusantium eum dolorem doloribus
-                inventore fugiat saepe autem omnis, quod atque.
-              </p>
-              <div className={commonStyles.postInfo}>
-                <span>
-                  <FiCalendar size={20} />
-                  15 Mar 2021
-                </span>
-                <span>
-                  <FiUser size={20} />
-                  Breno Angelo
-                </span>
-                <span>
-                  <FiClock size={20} />4 min
-                </span>
-              </div>
-            </div>
-          </article>
+            </article>
+          ))}
 
           <a className={styles.loadingMorePosts}>Carregar mais posts</a>
         </div>
@@ -263,13 +206,13 @@ export const getStaticProps: GetStaticProps = async () => {
 
   const posts = postResponse.results.slice(1).map((post) => {
     return {
-      uid: post.uid,
+      slug: post.uid,
       first_publication_data: post.first_publication_date,
       data: post.data,
     };
   });
 
-  console.log(postSpotlight)
+  console.log(postSpotlight);
 
   return {
     props: {
