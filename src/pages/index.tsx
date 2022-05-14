@@ -11,6 +11,9 @@ import { createClient } from '../services/prismic';
 import { RichText } from 'prismic-dom';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import axios from 'axios';
+import { useState } from 'react';
+import { PlaceholderImage } from '../components/PlaceholderImage';
 
 interface IPost {
   slug: string;
@@ -40,6 +43,30 @@ interface IHomeProps {
 }
 
 export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
+  const [postsState, setPostsState] = useState(() => posts);
+  const [nextPageState, setNextPageState] = useState(() => nextPage);
+
+  function calcEstimatedReadTime(post: IPost) {
+    const characters = post.data.content.reduce((acc, current) => {
+      acc += RichText.asText(current.body).length + current.heading.length;
+
+      return acc;
+    }, 0);
+
+    return Math.ceil(characters / 200);
+  }
+
+  function handleLoadingMorePosts() {
+    if (!nextPageState) {
+      return;
+    }
+
+    axios.get(nextPageState).then(({ data }) => {
+      setPostsState((state) => [...state, data.results[0]]);
+      setNextPageState(data.next_page);
+    });
+  }
+
   return (
     <main className={styles.main}>
       <section className={styles.headerSection}>
@@ -57,7 +84,7 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
               </p>
 
               <Button
-                text={'Inscreva-se'}
+                text="Inscreva-se"
                 icon={<IoArrowForwardSharp size={20} />}
               />
             </div>
@@ -99,7 +126,8 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
                   {postSpotlight.data.author}
                 </span>
                 <span>
-                  <FiClock size={20} />4 min
+                  <FiClock size={20} />
+                  {calcEstimatedReadTime(postSpotlight)} min
                 </span>
               </div>
 
@@ -109,12 +137,16 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
               />
             </div>
             <div className={styles.articleImg}>
-              <img
-                src={postSpotlight.data.banner.url}
-                alt={
-                  postSpotlight.data.banner.url ?? postSpotlight.data.subtitle
-                }
-              />
+              {postSpotlight.data.banner.url ? (
+                <img
+                  src={postSpotlight.data.banner.url}
+                  alt={
+                    postSpotlight.data.banner.url ?? postSpotlight.data.subtitle
+                  }
+                />
+              ) : (
+                <PlaceholderImage />
+              )}
             </div>
           </article>
         </div>
@@ -122,10 +154,10 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
 
       <section className={styles.postsListSection}>
         <div className={commonStyles.container}>
-          {posts.map((post) => (
+          {postsState.map((post) => (
             <article className={styles.articleSimple}>
               <div className={styles.articleImg}>
-                <Link href="/">
+                <Link href={`/post/${post.slug}`}>
                   <a>
                     <img
                       src={post.data.banner.url}
@@ -148,23 +180,31 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
                 <div className={commonStyles.postInfo}>
                   <span>
                     <FiCalendar size={20} />
-                    {/* {format(new Date(post?.first_publication_date), 'PP', {
+                    {format(new Date(post.first_publication_date), 'PP', {
                       locale: ptBR,
-                    })} */}
+                    })}
                   </span>
                   <span>
                     <FiUser size={20} />
                     {post.data.author}
                   </span>
                   <span>
-                    <FiClock size={20} />4 min
+                    <FiClock size={20} />
+                    {calcEstimatedReadTime(post)} min
                   </span>
                 </div>
               </div>
             </article>
           ))}
 
-          <a className={styles.loadingMorePosts}>Carregar mais posts</a>
+          {nextPageState && (
+            <a
+              className={styles.loadingMorePosts}
+              onClick={handleLoadingMorePosts}
+            >
+              Carregar mais posts
+            </a>
+          )}
         </div>
       </section>
 
@@ -195,7 +235,7 @@ export const getStaticProps: GetStaticProps = async () => {
       field: 'document.first_publication_date',
       direction: 'desc',
     },
-    pageSize: 4,
+    pageSize: 5,
   });
 
   const postSpotlight = {
@@ -207,12 +247,10 @@ export const getStaticProps: GetStaticProps = async () => {
   const posts = postResponse.results.slice(1).map((post) => {
     return {
       slug: post.uid,
-      first_publication_data: post.first_publication_date,
+      first_publication_date: post.first_publication_date,
       data: post.data,
     };
   });
-
-  console.log(postSpotlight);
 
   return {
     props: {
