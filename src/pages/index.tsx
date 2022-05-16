@@ -21,7 +21,7 @@ interface IPost {
   data: {
     title: {
       text: string;
-    }[];
+    };
     subtitle: string;
     author: string;
     banner: {
@@ -45,6 +45,8 @@ interface IHomeProps {
 export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
   const [postsState, setPostsState] = useState(() => posts);
   const [nextPageState, setNextPageState] = useState(() => nextPage);
+
+  console.log(postSpotlight)
 
   function calcEstimatedReadTime(post: IPost) {
     const characters = post.data.content.reduce((acc, current) => {
@@ -155,7 +157,7 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
       <section className={styles.postsListSection}>
         <div className={commonStyles.container}>
           {postsState.map((post) => (
-            <article className={styles.articleSimple}>
+            <article className={styles.articleSimple} key={post.slug}>
               <div className={styles.articleImg}>
                 <Link href={`/post/${post.slug}`}>
                   <a>
