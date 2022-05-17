@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { createClient } from '../../services/prismic';
 import { mocked } from 'jest-mock';
-import Home from '../../pages';
+import Home, { getStaticProps } from '../../pages';
 
 const posts = [
   {
@@ -49,16 +49,16 @@ const posts = [
   },
 ];
 
+jest.mock('../../services/prismic')
+
 describe('Home page', () => {
   it('postSpotlight renders correctly', () => {
-    const getPrismicClientMocked = mocked(createClient);
-
     render(
-      <Home posts={posts.splice(1, )} postSpotlight={posts[0]} nextPage={null} />,
+      <Home posts={posts.slice(1)} postSpotlight={posts[0]} nextPage={null} />,
     );
 
-    expect(screen.getByText('My New Post')).toBeInTheDocument();
-    expect(screen.getByText('lorem ipsum example')).toBeInTheDocument();
+    expect(screen.queryByText('My New Post')).toBeInTheDocument();
+    expect(screen.getByText('lorem ipsum')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('25 jan 2021')).toBeInTheDocument();
     expect(screen.getByText('4 min')).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe('Home page', () => {
 
   it('posts renders correctly', () => {
     render(
-      <Home posts={posts.splice(1, )} postSpotlight={posts[0]} nextPage={null} />,
+      <Home posts={posts.slice(1)} postSpotlight={posts[0]} nextPage={null} />,
     );
 
     expect(screen.getByText('Testing new post')).toBeInTheDocument();
@@ -78,9 +78,147 @@ describe('Home page', () => {
 
   it('Loading more posts dont render if no exists posts', () => {
     render(
-      <Home posts={posts.splice(1, )} postSpotlight={posts[0]} nextPage={null}/>
-    )
+      <Home posts={posts.splice(1)} postSpotlight={posts[0]} nextPage={null} />,
+    );
 
     expect(screen.queryByText(/Carregar mais posts/i)).not.toBeInTheDocument();
+  });
+
+  it('Loading more post render if exists posts in next page', () => {
+    render(
+      <Home
+        posts={posts.splice(1)}
+        postSpotlight={posts[0]}
+        nextPage={'fake-next-page'}
+      />,
+    );
+
+    expect(screen.queryByText(/Carregar mais posts/i)).toBeInTheDocument();
+  });
+
+  it('Loads correctly', async () => {
+    const createClientMocked = mocked(createClient)
+
+    createClientMocked.mockReturnValueOnce({
+      getByType: jest.fn().mockResolvedValueOnce({
+        results: [
+          {
+            uid: 'fake-slug-postSpotlight',
+            first_publication_date: '14-05-2022',
+            data: {
+              title: {
+                text: 'Titulo Spotlight',
+              },
+              subtitle: 'exemplo de subtitulo Spotlight',
+              author: 'John Doe',
+              banner: {
+                alt: 'descrição da foto Spotlight',
+                url: 'fake-url',
+              },
+              content: [
+                {
+                  heading: 'Exemplo de heading',
+                  body: [
+                    {
+                      type: 'paragraph',
+                      text: 'exemplo de paragrafo Spotlight',
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+          {
+            uid: 'fake-slug-post',
+            first_publication_date: '14-05-2022',
+            data: {
+              title: {
+                text: 'Titulo',
+              },
+              subtitle: 'exemplo de subtitulo',
+              author: 'John Doe',
+              banner: {
+                alt: 'descrição da foto',
+                url: 'fake-url',
+              },
+              content: [
+                {
+                  heading: 'Exemplo de heading',
+                  body: [{ type: 'paragraph', text: 'exemplo de paragrafo' }],
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    } as any);
+
+    const response = await getStaticProps({});
+
+    expect(response).toEqual(
+      expect.objectContaining({
+        props: {
+          postSpotlight: {
+            slug: 'fake-slug-postSpotlight',
+            first_publication_date: '14-05-2022',
+            data: {
+              title: {
+                text: 'Titulo Spotlight',
+              },
+              subtitle: 'exemplo de subtitulo Spotlight',
+              author: 'John Doe',
+              banner: {
+                alt: 'descrição da foto Spotlight',
+                url: 'fake-url',
+              },
+              content: [
+                {
+                  heading: 'Exemplo de heading',
+                  body: [
+                    {
+                      type: 'paragraph',
+                      text: 'exemplo de paragrafo Spotlight',
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+          posts: [
+            {
+              slug: 'fake-slug-post',
+              first_publication_date: '14-05-2022',
+              data: {
+                title: {
+                  text: 'Titulo',
+                },
+                subtitle: 'exemplo de subtitulo',
+                author: 'John Doe',
+                banner: {
+                  alt: 'descrição da foto',
+                  url: 'fake-url',
+                },
+                content: [
+                  {
+                    heading: 'Exemplo de heading',
+                    body: [{ type: 'paragraph', text: 'exemplo de paragrafo' }],
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      }),
+    );
+  });
+
+  it('Empty posts renders correctly', () => {
+    render(
+      <Home 
+        posts={[]}
+        postSpotlight={{}}
+        nextPage={null}
+      />
+    )
   })
 });

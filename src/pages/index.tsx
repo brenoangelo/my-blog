@@ -46,8 +46,6 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
   const [postsState, setPostsState] = useState(() => posts);
   const [nextPageState, setNextPageState] = useState(() => nextPage);
 
-  console.log(postSpotlight)
-
   function calcEstimatedReadTime(post: IPost) {
     const characters = post.data.content.reduce((acc, current) => {
       acc += RichText.asText(current.body).length + current.heading.length;
@@ -67,6 +65,10 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
       setPostsState((state) => [...state, data.results[0]]);
       setNextPageState(data.next_page);
     });
+  }
+
+  function emptyPosts() {
+    <div>Sem posts para exibir</div>;
   }
 
   return (
@@ -99,59 +101,64 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
       </section>
 
       <section className={styles.spotLightSection}>
-        <div className={commonStyles.container}>
-          <article className={styles.articleHero}>
-            <div className={styles.articleText}>
-              <Link href={`/post/${postSpotlight.slug}`}>
-                <a>
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: RichText.asHtml(postSpotlight.data.title),
-                    }}
-                  />
-                </a>
-              </Link>
-              <p>{postSpotlight.data.subtitle}</p>
-              <div className={commonStyles.postInfo}>
-                <time>
-                  <FiCalendar size={20} />
-                  {format(
-                    new Date(postSpotlight?.first_publication_date),
-                    'PP',
-                    {
-                      locale: ptBR,
-                    },
-                  )}
-                </time>
-                <span>
-                  <FiUser size={20} />
-                  {postSpotlight.data.author}
-                </span>
-                <span>
-                  <FiClock size={20} />
-                  {calcEstimatedReadTime(postSpotlight)} min
-                </span>
-              </div>
+        {postSpotlight.data ? (
+          <div className={commonStyles.container}>
+            <article className={styles.articleHero}>
+              <div className={styles.articleText}>
+                <Link href={`/post/${postSpotlight.slug}`}>
+                  <a>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: RichText.asHtml(postSpotlight.data.title),
+                      }}
+                    />
+                  </a>
+                </Link>
+                <p>{postSpotlight.data.subtitle}</p>
+                <div className={commonStyles.postInfo}>
+                  <time>
+                    <FiCalendar size={20} />
+                    {format(
+                      new Date(postSpotlight?.first_publication_date),
+                      'PP',
+                      {
+                        locale: ptBR,
+                      },
+                    )}
+                  </time>
+                  <span>
+                    <FiUser size={20} />
+                    {postSpotlight.data.author}
+                  </span>
+                  <span>
+                    <FiClock size={20} />
+                    {calcEstimatedReadTime(postSpotlight)} min
+                  </span>
+                </div>
 
-              <Button
-                text={'Ler mais'}
-                icon={<IoArrowForwardSharp size={20} />}
-              />
-            </div>
-            <div className={styles.articleImg}>
-              {postSpotlight.data.banner.url ? (
-                <img
-                  src={postSpotlight.data.banner.url}
-                  alt={
-                    postSpotlight.data.banner.url ?? postSpotlight.data.subtitle
-                  }
+                <Button
+                  text={'Ler mais'}
+                  icon={<IoArrowForwardSharp size={20} />}
                 />
-              ) : (
-                <PlaceholderImage />
-              )}
-            </div>
-          </article>
-        </div>
+              </div>
+              <div className={styles.articleImg}>
+                {postSpotlight.data.banner.url ? (
+                  <img
+                    src={postSpotlight.data.banner.url}
+                    alt={
+                      postSpotlight.data.banner.url ??
+                      postSpotlight.data.subtitle
+                    }
+                  />
+                ) : (
+                  <PlaceholderImage />
+                )}
+              </div>
+            </article>
+          </div>
+        ) : (
+          emptyPosts()
+        ) as any}
       </section>
 
       <section className={styles.postsListSection}>
