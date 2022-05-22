@@ -14,28 +14,9 @@ import ptBR from 'date-fns/locale/pt-BR';
 import axios from 'axios';
 import { useState } from 'react';
 import { PlaceholderImage } from '../components/PlaceholderImage';
+import { IPost } from '../utils/types';
+import { calcEstimatedReadTime } from '../utils/constants';
 
-interface IPost {
-  slug: string;
-  first_publication_date: string;
-  data: {
-    title: {
-      text: string;
-    };
-    subtitle: string;
-    author: string;
-    banner: {
-      alt: string | null;
-      url: string | null;
-    };
-    content: {
-      heading: string;
-      body: {
-        text: string;
-      }[];
-    }[];
-  };
-}
 interface IHomeProps {
   postSpotlight: IPost;
   posts: IPost[];
@@ -45,16 +26,6 @@ interface IHomeProps {
 export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
   const [postsState, setPostsState] = useState(() => posts);
   const [nextPageState, setNextPageState] = useState(() => nextPage);
-
-  function calcEstimatedReadTime(post: IPost) {
-    const characters = post.data.content.reduce((acc, current) => {
-      acc += RichText.asText(current.body).length + current.heading.length;
-
-      return acc;
-    }, 0);
-
-    return Math.ceil(characters / 200);
-  }
 
   function handleLoadingMorePosts() {
     if (!nextPageState) {
@@ -132,7 +103,7 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
                   </span>
                   <span>
                     <FiClock size={20} />
-                    {calcEstimatedReadTime(postSpotlight)} min
+                    {calcEstimatedReadTime(postSpotlight.data.content)} min
                   </span>
                 </div>
 
@@ -199,7 +170,7 @@ export default function Home({ postSpotlight, posts, nextPage }: IHomeProps) {
                   </span>
                   <span>
                     <FiClock size={20} />
-                    {calcEstimatedReadTime(post)} min
+                    {calcEstimatedReadTime(post.data.content)} min
                   </span>
                 </div>
               </div>
