@@ -1,0 +1,52 @@
+.container {
+  max-width: 712px;
+  width: 100%;
+
+  margin: 0 auto;
+  padding: 0 2%;
+}
+
+.banner {
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+  img {
+    width: 100%;
+  }
+}
+
+.header {
+  margin-top: 80px;
+
+  h1 {
+    font-size: 3.2rem;
+    margin-bottom: 1.6rem;
+  }
+}
+
+.content {
+  margin: 4.2rem 0;
+}
+
+.blockText {
+  h2 {
+    margin-bottom: 3rem;
+    font-size: 2.4rem;
+  }
+
+  p, strong, li {
+    font-size: 1.2rem;
+    line-height: 140%;
+  }
+
+  a {
+    color: var(--purple-300);
+  }
+
+  & + div {
+    margin-top: 3rem;
+  }
+}

@@ -6,6 +6,8 @@ import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { createClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/commonStyles.module.scss';
+import styles from './post.module.scss';
+
 import { calcEstimatedReadTime } from '../../utils/constants';
 
 import { RichText } from 'prismic-dom';
@@ -38,32 +40,46 @@ export default function Post({ post }: PostProps) {
       </Head>
 
       <main>
-        <div>
+        <div className={styles.banner}>
           <img src={post.banner.url} alt={post.banner.alt} />
         </div>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <h1>{post.title}</h1>
+            <div className={commonStyles.postInfo}>
+              <span>
+                <FiCalendar size={20} />
+                {format(new Date(post.first_publication_date), 'PP', {
+                  locale: ptBR,
+                })}
+              </span>
+              <span>
+                <FiUser size={20} />
+                {post.author}
+              </span>
+              <span>
+                <FiClock size={20} />
+                {calcEstimatedReadTime(post.content)} min
+              </span>
+            </div>
+          </header>
 
-        <header>
-          <h1>{post.title}</h1>
-          <div className={commonStyles.postInfo}>
-            <span>
-              <FiCalendar size={20} />
-              {format(new Date(post.first_publication_date), 'PP', {
-                locale: ptBR,
-              })}
-            </span>
-            <span>
-              <FiUser size={20} />
-              {post.author}
-            </span>
-            <span>
-              <FiClock size={20} />
-              {calcEstimatedReadTime(post.content)} min
-            </span>
-          </div>
-        </header>
-
-        <div>
-          {/* <div dangerouslySetInnerHTML={{ _html: RichText.asHtml(post.content) }}/> */}
+          <section className={styles.content}>
+            {post.content.map((content, index) => (
+              <div className={styles.blockText} key={index}>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: RichText.asHtml(content.heading),
+                  }}
+                />
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: RichText.asHtml(content.body),
+                  }}
+                />
+              </div>
+            ))}
+          </section>
         </div>
       </main>
     </>
